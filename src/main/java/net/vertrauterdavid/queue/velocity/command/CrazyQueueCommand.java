@@ -33,7 +33,7 @@ public class CrazyQueueCommand implements RawCommand {
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("list")) {
                 queueManager.getServerQueues().forEach((server, serverQueue) -> {
-                    Queue<Player> players = serverQueue.getPlayers();
+                    Queue<Player> players = serverQueue.getPlayerQueue();
                     player.sendMessage(ColorUtil.translate("§a" + server + " §8- §a" + players.size() + " §8: §7" + players.stream().map(Player::getUsername).reduce((a, b) -> a + ", " + b).orElse(""))); // todo
                 });
                 return;

@@ -36,7 +36,7 @@ public class QueueCommand implements RawCommand {
                 return;
             }
 
-            if (serverQueue.getPlayers().contains(player)) {
+            if (serverQueue.getPlayerQueue().contains(player)) {
                 player.sendMessage(ColorUtil.translate("§7You are already in the queue for §c" + server + "§7."));
                 return;
             }

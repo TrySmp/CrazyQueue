@@ -4,3 +4,7 @@ api-version: 1.19
 main: net.vertrauterdavid.queue.bukkit.CrazyQueueBukkit
 author: VertrauterDavid
 website: https://vertrauterdavid.net/ & https://github.com/vertrauterdavid/
+
+commands:
+  leavequeue:
+  queue:

@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 public class ServerListener {
 
     private final RegisteredServer registeredServer;
-    private final ServerQueue serverQueue;
 
     private int status = 0; // 0 = unknown, 1 = online, 2 = offline
 
@@ -21,7 +20,7 @@ public class ServerListener {
         CrazyQueueVelocity.getInstance().getProxyServer().getScheduler().buildTask(CrazyQueueVelocity.getInstance(), this::ping).repeat((long) (CrazyQueueVelocity.PING_TIMER * 1000), TimeUnit.SECONDS).schedule();
     }
 
-    private void ping() {
+    public void ping() {
         try {
             registeredServer.ping().get();
             markOnline();
@@ -30,15 +29,13 @@ public class ServerListener {
         }
     }
 
-    private void markOnline() {
+    public void markOnline() {
         if (status == 1) return;
-        serverQueue.setProcessing(true);
         status = 1;
     }
 
-    private void markOffline() {
+    public void markOffline() {
         if (status == 2) return;
-        serverQueue.setProcessing(false);
         status = 2;
     }
 

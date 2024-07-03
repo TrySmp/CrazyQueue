@@ -9,8 +9,8 @@ import lombok.Setter;
 import net.vertrauterdavid.queue.velocity.CrazyQueueVelocity;
 import net.vertrauterdavid.queue.velocity.util.ColorUtil;
 
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class ServerQueue {
 
     private final RegisteredServer registeredServer;
-    private final Queue<Player> players = new LinkedList<>();
+    private final Queue<Player> playerQueue = new ConcurrentLinkedQueue<>();
 
     @Setter
     private boolean processing = false;
@@ -28,20 +28,20 @@ public class ServerQueue {
     }
 
     private void process() {
-        synchronized (players) {
-            if (players.isEmpty()) return;
-            players.removeIf(player -> player.getCurrentServer().map(serverConnection -> serverConnection.getServer().getServerInfo().getName().equalsIgnoreCase(registeredServer.getServerInfo().getName())).orElse(false));
-            players.removeIf(player -> !player.isActive());
+        synchronized (playerQueue) {
+            if (playerQueue.isEmpty()) return;
+            playerQueue.removeIf(player -> player.getCurrentServer().map(serverConnection -> serverConnection.getServer().getServerInfo().getName().equalsIgnoreCase(registeredServer.getServerInfo().getName())).orElse(false));
+            playerQueue.removeIf(player -> !player.isActive());
 
             sendActionbar();
 
-            if (players.isEmpty()) return;
-            Player player = players.peek();
+            if (playerQueue.isEmpty()) return;
+            Player player = playerQueue.peek();
             player.createConnectionRequest(registeredServer).connect().thenAccept(result -> {
                 ConnectionRequestBuilder.Status status = result.getStatus();
 
                 if (status == ConnectionRequestBuilder.Status.SUCCESS) {
-                    players.poll();
+                    playerQueue.poll();
                     player.sendActionBar(ColorUtil.translate("§aSuccessfully connected to " + registeredServer.getServerInfo().getName()));
                 }
 
@@ -58,30 +58,52 @@ public class ServerQueue {
 
     private void sendActionbar() {
         int position = 1;
-        for (Player player : players) {
-            player.sendActionBar(ColorUtil.translate("§a#" + position + " §7in the queue to §a" + registeredServer.getServerInfo().getName()));
+        for (Player player : playerQueue) {
+            player.sendActionBar(ColorUtil.translate("§a#" + position + "§7 in the queue to §a§n" + registeredServer.getServerInfo().getName() + " §8(§7Waiting: " + playerQueue.size() + "§8)"));
             position++;
         }
     }
 
     public void add(Player player) {
-        synchronized (players) {
-            players.add(player);
+        synchronized (playerQueue) {
+            if (player.hasPermission("crazyqueue.queue.priority")) {
+                Queue<Player> tempQueue = new ConcurrentLinkedQueue<>();
+
+                boolean added = false;
+                for (Player queuedPlayer : playerQueue) {
+                    if (!added && !queuedPlayer.hasPermission("crazyqueue.queue.priority")) {
+                        tempQueue.add(player);
+                        added = true;
+                    }
+                    tempQueue.add(queuedPlayer);
+                }
+
+                if (!added) {
+                    tempQueue.add(player);
+                }
+
+                playerQueue.clear();
+                playerQueue.addAll(tempQueue);
+            } else {
+                playerQueue.add(player);
+            }
+
+            player.sendMessage(ColorUtil.translate("§7You have been added to the queue for §a" + registeredServer.getServerInfo().getName()));
         }
     }
 
     public void remove(Player player) {
-        synchronized (players) {
-            if (!players.contains(player)) return;
-            players.remove(player);
+        synchronized (playerQueue) {
+            if (!playerQueue.contains(player)) return;
+            playerQueue.remove(player);
             player.sendActionBar(ColorUtil.translate(" "));
         }
     }
 
     public void clear() {
-        synchronized (players) {
-            while (!players.isEmpty()) {
-                players.poll().sendActionBar(ColorUtil.translate(" "));
+        synchronized (playerQueue) {
+            while (!playerQueue.isEmpty()) {
+                playerQueue.poll().sendActionBar(ColorUtil.translate(" "));
             }
         }
     }

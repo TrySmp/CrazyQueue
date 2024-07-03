@@ -4,6 +4,7 @@ import com.velocitypowered.api.proxy.Player;
 import lombok.Getter;
 import net.vertrauterdavid.queue.velocity.CrazyQueueVelocity;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,11 +16,24 @@ public class QueueManager {
 
     public QueueManager() {
         CrazyQueueVelocity.getInstance().getProxyServer().getAllServers().forEach((registeredServer) -> {
+            if (Arrays.stream(CrazyQueueVelocity.DISABLED_QUEUES).toList().contains(registeredServer.getServerInfo().getName())) return;
+
             ServerQueue serverQueue = new ServerQueue(registeredServer);
             serverQueue.startScheduler();
             serverQueues.put(registeredServer.getServerInfo().getName().toLowerCase(), serverQueue);
 
-            ServerListener serverListener = new ServerListener(registeredServer, serverQueue);
+            ServerListener serverListener = new ServerListener(registeredServer) {
+                @Override
+                public void markOnline() {
+                    super.markOnline();
+                    serverQueue.setProcessing(true);
+                }
+                @Override
+                public void markOffline() {
+                    super.markOffline();
+                    serverQueue.setProcessing(false);
+                }
+            };
             serverListener.startPinging();
             serverListeners.put(registeredServer.getServerInfo().getName().toLowerCase(), serverListener);
         });
@@ -30,10 +44,11 @@ public class QueueManager {
     }
 
     public List<String> getAllServerNames() {
-        return CrazyQueueVelocity.getInstance().getProxyServer().getAllServers().stream().map(server -> server.getServerInfo().getName()).toList();
+        return serverQueues.values().stream().map(serverQueue -> serverQueue.getRegisteredServer().getServerInfo().getName()).toList();
     }
 
     public ServerQueue getQueue(String server) {
+        if (server == null) return null;
         return serverQueues.get(server.toLowerCase());
     }
 
