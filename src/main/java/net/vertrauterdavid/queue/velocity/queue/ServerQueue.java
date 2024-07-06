@@ -42,14 +42,14 @@ public class ServerQueue {
 
                 if (status == ConnectionRequestBuilder.Status.SUCCESS) {
                     playerQueue.poll();
-                    player.sendActionBar(ColorUtil.translate("§aSuccessfully connected to " + registeredServer.getServerInfo().getName()));
+                    player.sendActionBar(ColorUtil.translate(ColorUtil.GREEN + "Successfully connected to " + registeredServer.getServerInfo().getName()));
                 }
 
                 /*
                 // removes the player from the queue if the server disconnects the player
                 if (status == ConnectionRequestBuilder.Status.SERVER_DISCONNECTED) {
                     players.poll();
-                    player.sendActionBar(ColorUtil.translate("§cFailed to connect to " + registeredServer.getServerInfo().getName()));
+                    player.sendActionBar(ColorUtil.translate(ColorUtil.RED + "Failed to connect to " + registeredServer.getServerInfo().getName()));
                 }
                  */
             });
@@ -59,13 +59,15 @@ public class ServerQueue {
     private void sendActionbar() {
         int position = 1;
         for (Player player : playerQueue) {
-            player.sendActionBar(ColorUtil.translate("§a#" + position + "§7 in the queue to §a§n" + registeredServer.getServerInfo().getName() + " §8(§7Waiting: " + playerQueue.size() + "§8)"));
+            player.sendActionBar(ColorUtil.translate(ColorUtil.GREEN + "#" + position + "§7 in the queue to " + ColorUtil.GREEN + "§n" + registeredServer.getServerInfo().getName() + "§r §8(§7Waiting: " + playerQueue.size() + "§8)"));
             position++;
         }
     }
 
     public void add(Player player) {
         synchronized (playerQueue) {
+            if (playerQueue.contains(player)) return;
+
             if (player.hasPermission("crazyqueue.queue.priority")) {
                 Queue<Player> tempQueue = new ConcurrentLinkedQueue<>();
 
@@ -88,7 +90,7 @@ public class ServerQueue {
                 playerQueue.add(player);
             }
 
-            player.sendMessage(ColorUtil.translate("§7You have been added to the queue for §a" + registeredServer.getServerInfo().getName()));
+            player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "You have been added to the queue for " + ColorUtil.GREEN + registeredServer.getServerInfo().getName()));
         }
     }
 

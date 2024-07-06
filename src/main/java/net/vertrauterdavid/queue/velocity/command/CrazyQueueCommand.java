@@ -30,12 +30,26 @@ public class CrazyQueueCommand implements RawCommand {
         if (!(invocation.source() instanceof Player player)) return;
         String[] args = CommandUtil.getArgs(invocation);
 
-        if (args.length == 1) {
-            if (args[0].equalsIgnoreCase("list")) {
-                queueManager.getServerQueues().forEach((server, serverQueue) -> {
-                    Queue<Player> players = serverQueue.getPlayerQueue();
-                    player.sendMessage(ColorUtil.translate("§a" + server + " §8- §a" + players.size() + " §8: §7" + players.stream().map(Player::getUsername).reduce((a, b) -> a + ", " + b).orElse(""))); // todo
-                });
+        if (args.length == 1 || args.length == 2) {
+            if (args[0].equalsIgnoreCase("info")) {
+                player.sendMessage(ColorUtil.translate("§8▏"));
+                player.sendMessage(ColorUtil.translate("§8▏"));
+                if (args.length == 2 && args[1].equalsIgnoreCase("--players")) {
+                    queueManager.getServerQueues().forEach((server, serverQueue) -> {
+                        Queue<Player> players = serverQueue.getPlayerQueue();
+                        player.sendMessage(ColorUtil.translate("§8▏ " + ColorUtil.GREEN + server + " §8(§7" + players.size() + "§8): §7" + players.stream().map(Player::getUsername).sorted().reduce((a, b) -> a + ", " + b).orElse("")));
+                    });
+                } else {
+                    queueManager.getServerQueues().forEach((server, serverQueue) -> {
+                        Queue<Player> players = serverQueue.getPlayerQueue();
+                        player.sendMessage(ColorUtil.translate("§8▏ " + ColorUtil.GREEN + server + "§8: §7" + players.size() + " players"));
+                    });
+                }
+                player.sendMessage(ColorUtil.translate("§8▏"));
+                player.sendMessage(ColorUtil.translate("§8▏"));
+                player.sendMessage(ColorUtil.translate("§8▏ §7Queue Time: " + ColorUtil.GREEN + (CrazyQueueVelocity.PROCESS_TIMER * 1000) + "ms"));
+                player.sendMessage(ColorUtil.translate("§8▏"));
+                player.sendMessage(ColorUtil.translate("§8▏"));
                 return;
             }
         }
@@ -45,11 +59,11 @@ public class CrazyQueueCommand implements RawCommand {
                 String server = args[1];
                 ServerQueue serverQueue = queueManager.getQueue(server);
                 if (serverQueue == null) {
-                    player.sendMessage(ColorUtil.translate("§7The server §c" + server + " §7does not exist."));
+                    player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "The server " + ColorUtil.RED + server + " §7does not exist."));
                     return;
                 }
                 serverQueue.clear();
-                player.sendMessage(ColorUtil.translate("§7The queue of the server §c" + server + " §7has been cleared."));
+                player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "The queue of the server " + ColorUtil.RED + server + " §7has been cleared."));
                 return;
             }
             if (args[0].equalsIgnoreCase("queue")) {
@@ -65,7 +79,7 @@ public class CrazyQueueCommand implements RawCommand {
                 String server = args[2];
                 ServerQueue serverQueue = queueManager.getQueue(server);
                 if (serverQueue == null) {
-                    player.sendMessage(ColorUtil.translate("§7The server §c" + server + " §7does not exist."));
+                    player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "The server " + ColorUtil.RED + server + " §7does not exist."));
                     return;
                 }
 
@@ -77,7 +91,7 @@ public class CrazyQueueCommand implements RawCommand {
                     default -> {
                         Player target = proxyServer.getPlayer(targetS).orElse(null);
                         if (target == null) {
-                            player.sendMessage(ColorUtil.translate("§7The player §c" + targetS + " §7is not online."));
+                            player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "The player " + ColorUtil.RED + targetS + " §7is not online."));
                             return;
                         }
                         targets.add(target);
@@ -87,15 +101,16 @@ public class CrazyQueueCommand implements RawCommand {
                 targets.removeIf(target -> target.getCurrentServer().map(serverConnection -> serverConnection.getServer().getServerInfo().getName().equalsIgnoreCase(server)).orElse(false));
                 targets.forEach(serverQueue::add);
 
-                player.sendMessage(ColorUtil.translate("§a" + targets.size() + " §7player" + (targets.size() != 1 ? "s" : "") + " have been added to the queue for §a" + server + "§7."));
+                player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + ColorUtil.GREEN + targets.size() + " §7player" + (targets.size() != 1 ? "s" : "") + " have been added to the queue for " + ColorUtil.GREEN + server + "§7."));
                 return;
             }
         }
 
-        player.sendMessage(ColorUtil.translate("§7Please use: §c/" + name + " list"));
-        player.sendMessage(ColorUtil.translate("§7Please use: §c/" + name + " clear <server>"));
-        player.sendMessage(ColorUtil.translate("§7Please use: §c/" + name + " queue <server>"));
-        player.sendMessage(ColorUtil.translate("§7Please use: §c/" + name + " send <playerName / all / current> <server>"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " info"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " info --players"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " clear <server>"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " queue <server>"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " send <playerName / all / current> <server>"));
     }
 
     @Override
@@ -112,8 +127,12 @@ public class CrazyQueueCommand implements RawCommand {
             proxyServer.getAllPlayers().forEach(player -> list.add(player.getUsername()));
         }
 
+        if (args.length == 2 && args[0].equalsIgnoreCase("info")) {
+            list.add("--players");
+        }
+
         if (args.length == 1) {
-            list.addAll(Arrays.asList("list", "clear", "queue", "send"));
+            list.addAll(Arrays.asList("info", "clear", "queue", "send"));
         }
 
         return CommandUtil.finishComplete(list, args);

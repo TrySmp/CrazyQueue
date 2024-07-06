@@ -14,11 +14,13 @@ public class KickedFromServerListener {
         Player player = event.getPlayer();
         if (player.getCurrentServer().isEmpty()) return;
 
+        /*
         RegisteredServer oldServer = CrazyQueueVelocity.getInstance().getOldServers().getOrDefault(player, null);
         ServerQueue serverQueue = CrazyQueueVelocity.getInstance().getQueueManager().getQueue(oldServer == null ? null : oldServer.getServerInfo().getName());
         if (serverQueue == null) return;
 
         serverQueue.add(player);
+         */
     }
 
 }

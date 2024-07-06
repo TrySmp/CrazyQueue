@@ -32,17 +32,17 @@ public class QueueCommand implements RawCommand {
             String server = args[0];
             ServerQueue serverQueue = queueManager.getQueue(server);
             if (serverQueue == null) {
-                player.sendMessage(ColorUtil.translate("§7The server §c" + server + " §7does not exist."));
+                player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "The server " + ColorUtil.RED + server + " §7does not exist."));
                 return;
             }
 
             if (serverQueue.getPlayerQueue().contains(player)) {
-                player.sendMessage(ColorUtil.translate("§7You are already in the queue for §c" + server + "§7."));
+                player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "You are already in the queue for " + ColorUtil.RED + server + "§7."));
                 return;
             }
 
             if (player.getCurrentServer().map(serverConnection -> serverConnection.getServer().getServerInfo().getName().equalsIgnoreCase(server)).orElse(false)) {
-                player.sendMessage(ColorUtil.translate("§7You are already on the server §c" + server + "§7."));
+                player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "You are already on the server " + ColorUtil.RED + server + "§7."));
                 return;
             }
 
@@ -51,7 +51,7 @@ public class QueueCommand implements RawCommand {
             return;
         }
 
-        player.sendMessage(ColorUtil.translate("§7Please use: §c" + "/" + name + " <server>"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " <server>"));
     }
 
     @Override

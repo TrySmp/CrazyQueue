@@ -8,6 +8,11 @@ import java.util.regex.Pattern;
 
 public class ColorUtil {
 
+    public static final String BLUE = "&#559eff";
+    public static final String GREEN = "&#7cfc00";
+    public static final String RED = "&#ff0000";
+    public static final String PREFIX = "§8▏ " + BLUE + "TrySmp §8» §7";
+
     public static Component translate(String message) {
         message = message.replaceAll("&([0-9a-fk-or])", "§$1");
         Pattern pattern = Pattern.compile("&#([A-Fa-f0-9]{6})");

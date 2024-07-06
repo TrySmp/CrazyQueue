@@ -8,3 +8,4 @@ website: https://vertrauterdavid.net/ & https://github.com/vertrauterdavid/
 commands:
   leavequeue:
   queue:
+  server:

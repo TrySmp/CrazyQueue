@@ -30,6 +30,13 @@ public class CrazyQueueBukkit extends JavaPlugin implements PluginMessageListene
             sendMessage(player, "command queue " + args[0]);
             return true;
         });
+
+        Objects.requireNonNull(getCommand("server")).setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof Player player)) return false;
+            if (!(args.length == 1)) return false;
+            sendMessage(player, "command server " + args[0]);
+            return true;
+        });
     }
 
     private void sendMessage(Player player, String data) {
