@@ -94,6 +94,7 @@ public class CrazyQueueCommand implements RawCommand {
                         targets.addAll(proxyServer.getAllPlayers().stream().filter(target -> !target.getUsername().equalsIgnoreCase(player.getUsername())).toList());
                     }
                     case "current" -> player.getCurrentServer().ifPresent(serverConnection -> targets.addAll(serverConnection.getServer().getPlayersConnected().stream().filter(target -> !target.getUsername().equalsIgnoreCase(player.getUsername())).toList()));
+                    case "hub" -> targets.addAll(proxyServer.getAllPlayers().stream().filter(target -> target.getCurrentServer().map(serverConnection -> serverConnection.getServer().getServerInfo().getName().toLowerCase().contains("hub")).orElse(false)).toList());
                     default -> {
                         Player target = proxyServer.getPlayer(targetS).orElse(null);
                         if (target == null) {
@@ -116,7 +117,7 @@ public class CrazyQueueCommand implements RawCommand {
         player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " info --players"));
         player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " clear <server>"));
         player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " queue <server>"));
-        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " send <playerName / all / current> <server>"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " send <playerName / all / current / hub> <server>"));
     }
 
     @Override
@@ -133,6 +134,7 @@ public class CrazyQueueCommand implements RawCommand {
                 list.add("all");
             }
             list.add("current");
+            list.add("hub");
             proxyServer.getAllPlayers().forEach(player -> list.add(player.getUsername()));
         }
 
