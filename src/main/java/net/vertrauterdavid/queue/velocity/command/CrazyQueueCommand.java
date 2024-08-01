@@ -37,7 +37,7 @@ public class CrazyQueueCommand implements RawCommand {
                 if (args.length == 2 && args[1].equalsIgnoreCase("--players")) {
                     queueManager.getServerQueues().forEach((server, serverQueue) -> {
                         Queue<Player> players = serverQueue.getPlayerQueue();
-                        player.sendMessage(ColorUtil.translate("§8▏ " + ColorUtil.GREEN + server + " §8(§7" + players.size() + "§8): §7" + players.stream().map(Player::getUsername).sorted().reduce((a, b) -> a + ", " + b).orElse("")));
+                        player.sendMessage(ColorUtil.translate("§8▏ " + ColorUtil.GREEN + server + " §8(§7" + players.size() + "§8): §7" + players.stream().map(Player::getUsername).reduce((a, b) -> a + ", " + b).orElse("")));
                     });
                 } else {
                     queueManager.getServerQueues().forEach((server, serverQueue) -> {
@@ -86,8 +86,14 @@ public class CrazyQueueCommand implements RawCommand {
                 List<Player> targets = new ArrayList<>();
 
                 switch (targetS) {
-                    case "all" -> targets.addAll(proxyServer.getAllPlayers());
-                    case "current" -> player.getCurrentServer().ifPresent(serverConnection -> targets.addAll(serverConnection.getServer().getPlayersConnected()));
+                    case "all" -> {
+                        if (!player.hasPermission("crazyqueue.command.sendall")) {
+                            player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "You do not have permission to send all players"));
+                            return;
+                        }
+                        targets.addAll(proxyServer.getAllPlayers().stream().filter(target -> !target.getUsername().equalsIgnoreCase(player.getUsername())).toList());
+                    }
+                    case "current" -> player.getCurrentServer().ifPresent(serverConnection -> targets.addAll(serverConnection.getServer().getPlayersConnected().stream().filter(target -> !target.getUsername().equalsIgnoreCase(player.getUsername())).toList()));
                     default -> {
                         Player target = proxyServer.getPlayer(targetS).orElse(null);
                         if (target == null) {
@@ -123,7 +129,10 @@ public class CrazyQueueCommand implements RawCommand {
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("send")) {
-            list.addAll(Arrays.asList("all", "current"));
+            if (invocation.source().hasPermission("crazyqueue.command.sendall")) {
+                list.add("all");
+            }
+            list.add("current");
             proxyServer.getAllPlayers().forEach(player -> list.add(player.getUsername()));
         }
 

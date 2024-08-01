@@ -3,9 +3,6 @@ package net.vertrauterdavid.queue.velocity.listener;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.player.KickedFromServerEvent;
 import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
-import net.vertrauterdavid.queue.velocity.CrazyQueueVelocity;
-import net.vertrauterdavid.queue.velocity.queue.ServerQueue;
 
 public class KickedFromServerListener {
 
