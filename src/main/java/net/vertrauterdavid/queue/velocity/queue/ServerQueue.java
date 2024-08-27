@@ -6,6 +6,8 @@ import com.velocitypowered.api.proxy.server.RegisteredServer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.vertrauterdavid.queue.velocity.CrazyQueueVelocity;
 import net.vertrauterdavid.queue.velocity.util.ColorUtil;
 
@@ -45,13 +47,22 @@ public class ServerQueue {
                     player.sendActionBar(ColorUtil.translate(ColorUtil.GREEN + "Successfully connected to " + registeredServer.getServerInfo().getName()));
                 }
 
-                /*
-                // removes the player from the queue if the server disconnects the player
+                // server disconnected the player
                 if (status == ConnectionRequestBuilder.Status.SERVER_DISCONNECTED) {
-                    players.poll();
-                    player.sendActionBar(ColorUtil.translate(ColorUtil.RED + "Failed to connect to " + registeredServer.getServerInfo().getName()));
+                    Component resasonComponent = result.getReasonComponent().orElseGet(() -> ColorUtil.translate("no reason"));
+                    String reason = PlainTextComponentSerializer.plainText().serialize(resasonComponent);
+
+                    // removes the player from the queue if the player is banned on the server
+                    // why not disconnect the player from the server for any reason? example: the server could be whitelisted for a few seconds just to fix some bugs, we don't want to remove the player from the queue in this case
+                    if (reason.contains("banned")) {
+                        player.sendMessage(ColorUtil.translate(" "));
+                        player.sendMessage(resasonComponent);
+                        player.sendMessage(ColorUtil.translate(" "));
+
+                        playerQueue.poll();
+                        player.sendActionBar(ColorUtil.translate(ColorUtil.RED + "Failed to connect to " + registeredServer.getServerInfo().getName()));
+                    }
                 }
-                 */
             });
         }
     }

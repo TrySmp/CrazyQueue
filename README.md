@@ -1,2 +1,3 @@
 # CrazyQueue
-## 🐊
+
+**Disclaimer:** This plugin is specifically designed for use on the TrySmp.net network and is not intended for public distribution. It is advised not to use this plugin on your own server without having a qualified developer review the code and make any necessary modifications. Please note that the plugin does not include a configuration file, and no support will be provided by the developers.
