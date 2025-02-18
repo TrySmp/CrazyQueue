@@ -9,6 +9,7 @@ import net.vertrauterdavid.queue.velocity.util.ColorUtil;
 import net.vertrauterdavid.queue.velocity.util.CommandUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class QueueCommand implements RawCommand {
@@ -27,6 +28,11 @@ public class QueueCommand implements RawCommand {
     public void execute(Invocation invocation) {
         if (!(invocation.source() instanceof Player player)) return;
         String[] args = CommandUtil.getArgs(invocation);
+
+        // remove first if empty
+        if (args.length > 0 && args[0].replaceAll(" ", "").equalsIgnoreCase("")) {
+            args = Arrays.copyOfRange(args, 1, args.length);
+        }
 
         if (args.length == 1) {
             String server = args[0];

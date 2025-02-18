@@ -30,6 +30,11 @@ public class CrazyQueueCommand implements RawCommand {
         if (!(invocation.source() instanceof Player player)) return;
         String[] args = CommandUtil.getArgs(invocation);
 
+        // remove first if empty
+        if (args.length > 0 && args[0].replaceAll(" ", "").equalsIgnoreCase("")) {
+            args = Arrays.copyOfRange(args, 1, args.length);
+        }
+
         if (args.length == 1 || args.length == 2) {
             if (args[0].equalsIgnoreCase("info")) {
                 player.sendMessage(ColorUtil.translate("§8▏"));
