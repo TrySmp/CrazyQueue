@@ -34,11 +34,11 @@ public class CrazyQueueVelocity {
 
     public static final String[] DISABLED_QUEUES = new String[] { // servers that should not be enabled as server queues
             "main", // main server on development network
-            "Hub-1",
-            "Hub-2",
-            "Hub-3",
-            "Hub-4",
-            "Hub-5",
+            "lobby-01",
+            "lobby-02",
+            "lobby-03",
+            "lobby-04",
+            "lobby-05",
             "Event",
             "BedWars"
     };
