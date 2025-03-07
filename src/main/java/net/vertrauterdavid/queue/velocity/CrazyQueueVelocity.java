@@ -29,7 +29,7 @@ import java.util.WeakHashMap;
 @Getter
 public class CrazyQueueVelocity {
 
-    public static final double PROCESS_TIMER = 0.5; // time in seconds between each queue process
+    public static final double PROCESS_TIMER = 0.25; // time in seconds between each queue process
     public static final double PING_TIMER = 5; // time in seconds between each ping to the queue servers
 
     public static final String[] DISABLED_QUEUES = new String[] { // servers that should not be enabled as server queues
@@ -39,6 +39,8 @@ public class CrazyQueueVelocity {
             "lobby-03",
             "lobby-04",
             "lobby-05",
+            "economy-dev",
+            "event",
             "Event",
             "BedWars"
     };

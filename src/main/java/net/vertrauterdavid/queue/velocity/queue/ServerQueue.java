@@ -12,8 +12,7 @@ import net.vertrauterdavid.queue.velocity.CrazyQueueVelocity;
 import net.vertrauterdavid.queue.velocity.util.ColorUtil;
 
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @RequiredArgsConstructor
 @Getter
@@ -21,6 +20,7 @@ public class ServerQueue {
 
     private final RegisteredServer registeredServer;
     private final Queue<Player> playerQueue = new ConcurrentLinkedQueue<>();
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Setter
     private boolean processing = false;
@@ -39,29 +39,10 @@ public class ServerQueue {
 
             if (playerQueue.isEmpty()) return;
             Player player = playerQueue.peek();
-            player.createConnectionRequest(registeredServer).connect().thenAccept(result -> {
-                ConnectionRequestBuilder.Status status = result.getStatus();
 
-                if (status == ConnectionRequestBuilder.Status.SUCCESS) {
+            connect(player).thenAccept(remove -> {
+                if (remove) {
                     playerQueue.poll();
-                    player.sendActionBar(ColorUtil.translate(ColorUtil.GREEN + "Successfully connected to " + registeredServer.getServerInfo().getName()));
-                }
-
-                // server disconnected the player
-                if (status == ConnectionRequestBuilder.Status.SERVER_DISCONNECTED) {
-                    Component resasonComponent = result.getReasonComponent().orElseGet(() -> ColorUtil.translate("no reason"));
-                    String reason = PlainTextComponentSerializer.plainText().serialize(resasonComponent);
-
-                    // removes the player from the queue if the player is banned on the server
-                    // why not disconnect the player from the server for any reason? example: the server could be whitelisted for a few seconds just to fix some bugs, we don't want to remove the player from the queue in this case
-                    if (reason.contains("banned")) {
-                        player.sendMessage(ColorUtil.translate(" "));
-                        player.sendMessage(resasonComponent);
-                        player.sendMessage(ColorUtil.translate(" "));
-
-                        playerQueue.poll();
-                        player.sendActionBar(ColorUtil.translate(ColorUtil.RED + "Failed to connect to " + registeredServer.getServerInfo().getName()));
-                    }
                 }
             });
         }
@@ -119,6 +100,64 @@ public class ServerQueue {
                 playerQueue.poll().sendActionBar(ColorUtil.translate(" "));
             }
         }
+    }
+
+    public void connect(int amount) {
+        executorService.execute(() -> {
+            for (int i = 0; i < amount; i++) {
+                Player player;
+                synchronized (playerQueue) {
+                    if (playerQueue.isEmpty()) return;
+                    player = playerQueue.peek();
+                }
+
+                if (player != null && player.isActive()) {
+                    boolean remove = connect(player).join();
+                    if (remove) {
+                        synchronized (playerQueue) {
+                            playerQueue.poll();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // returns true if the player should be removed from the queue
+    private CompletableFuture<Boolean> connect(Player player) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        player.createConnectionRequest(registeredServer).connect().thenAccept(result -> {
+            ConnectionRequestBuilder.Status status = result.getStatus();
+
+            if (status == ConnectionRequestBuilder.Status.SUCCESS) {
+                player.sendActionBar(ColorUtil.translate(ColorUtil.GREEN + "Successfully connected to " + registeredServer.getServerInfo().getName()));
+                future.complete(true);
+                return;
+            }
+
+            // server disconnected the player
+            if (status == ConnectionRequestBuilder.Status.SERVER_DISCONNECTED) {
+                Component resasonComponent = result.getReasonComponent().orElseGet(() -> ColorUtil.translate("no reason"));
+                String reason = PlainTextComponentSerializer.plainText().serialize(resasonComponent);
+
+                // removes the player from the queue if the player is banned on the server
+                // why not disconnect the player from the server for any reason? example: the server could be whitelisted for a few seconds just to fix some bugs, we don't want to remove the player from the queue in this case
+                if (reason.contains("banned")) {
+                    player.sendMessage(ColorUtil.translate(" "));
+                    player.sendMessage(resasonComponent);
+                    player.sendMessage(ColorUtil.translate(" "));
+
+                    player.sendActionBar(ColorUtil.translate(ColorUtil.RED + "Failed to connect to " + registeredServer.getServerInfo().getName()));
+                    future.complete(true);
+                    return;
+                }
+            }
+
+            future.complete(false);
+        });
+
+        return future;
     }
 
 }

@@ -78,6 +78,20 @@ public class CrazyQueueCommand implements RawCommand {
         }
 
         if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("connect")) {
+                String server = args[1];
+                ServerQueue serverQueue = queueManager.getQueue(server);
+                if (serverQueue == null) {
+                    player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "The server " + ColorUtil.RED + server + " §7does not exist."));
+                    return;
+                }
+                try {
+                    int amount = Math.max(0, Math.min(Integer.parseInt(args[2]), serverQueue.getPlayerQueue().size()));
+                    serverQueue.connect(amount);
+                    player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + amount + " player" + (amount != 1 ? "s" : "") + " will be connected."));
+                    return;
+                } catch (NumberFormatException ignored) { }
+            }
             if (args[0].equalsIgnoreCase("send")) {
                 String targetS = args[1];
 
@@ -122,6 +136,7 @@ public class CrazyQueueCommand implements RawCommand {
         player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " info --players"));
         player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " clear <server>"));
         player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " queue <server>"));
+        player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " connect <queue> <amount>"));
         player.sendMessage(ColorUtil.translate(ColorUtil.PREFIX + "Please use: " + ColorUtil.RED + "/" + name + " send <playerName / all / current / hub> <server>"));
     }
 
@@ -130,7 +145,7 @@ public class CrazyQueueCommand implements RawCommand {
         List<String> list = new ArrayList<>();
         String[] args = CommandUtil.getArgs(invocation);
 
-        if ((args.length == 2 && (args[0].equalsIgnoreCase("clear") || args[0].equalsIgnoreCase("queue"))) || (args.length == 3 && args[0].equalsIgnoreCase("send"))) {
+        if ((args.length == 2 && (args[0].equalsIgnoreCase("clear") || args[0].equalsIgnoreCase("queue") || args[0].equalsIgnoreCase("connect"))) || (args.length == 3 && (args[0].equalsIgnoreCase("send")))) {
             list.addAll(queueManager.getAllServerNames());
         }
 
@@ -148,7 +163,7 @@ public class CrazyQueueCommand implements RawCommand {
         }
 
         if (args.length == 1) {
-            list.addAll(Arrays.asList("info", "clear", "queue", "send"));
+            list.addAll(Arrays.asList("info", "clear", "queue", "connect", "send"));
         }
 
         return CommandUtil.finishComplete(list, args);
